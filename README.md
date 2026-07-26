@@ -12,7 +12,7 @@ It features a local-first **Prisma + SQLite** engine combined with an **in-memor
 
 Below is the verified end-to-end interface demonstrating real-time synchronization, loading skeletons, activity log terminal streams, and GitHub branch webhook triggers:
 
-![SequenceJira Kanban Board Interface](/docs/board_and_logs.png)
+![SequenceJira Kanban Board Interface](/docs/board_and_logs.jpeg)
 
 ---
 
