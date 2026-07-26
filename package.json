@@ -1,12 +1,17 @@
 {
   "name": "sequence-jira-ai-worker",
   "version": "1.0.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "description": "SequenceJira AI Worker and WebSocket platform",
   "scripts": {
     "build": "tsc",
     "start": "node dist/services/ai-worker/main.js",
     "start:dev": "ts-node services/ai-worker/main.ts",
-    "dev": "npm run dev --prefix apps/web"
+    "dev": "npm run dev --prefix apps/web",
+    "db:push": "prisma db push",
+    "db:seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@golevelup/nestjs-rabbitmq": "^9.0.2",
