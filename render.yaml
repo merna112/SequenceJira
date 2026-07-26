@@ -33,11 +33,9 @@ services:
         sync: false
       - key: GITHUB_WEBHOOK_SECRET
         sync: false
-
+  - type: redis
+    name: sequence-jira-redis
+    plan: free
 databases:
   - name: sequence-jira-db
-    plan: free
-
-redis:
-  - name: sequence-jira-redis
     plan: free
