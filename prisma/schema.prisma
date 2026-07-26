@@ -1,0 +1,192 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Workspace {
+  id             String            @id @default(uuid())
+  name           String
+  slug           String            @unique
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+  members        WorkspaceMember[]
+  projects       Project[]
+  epics          Epic[]
+  tasks          Task[]
+  comments       Comment[]
+  auditLogs      AuditLog[]
+  gitIntegration GitIntegration?
+
+  @@map("workspaces")
+}
+
+model User {
+  id            String            @id @default(uuid())
+  email         String            @unique
+  passwordHash  String            @map("password_hash")
+  fullName      String            @map("full_name")
+  avatarUrl     String?           @map("avatar_url")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  memberships   WorkspaceMember[]
+  assignedTasks Task[]            @relation("Assignee")
+  reportedTasks Task[]            @relation("Reporter")
+  comments      Comment[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model WorkspaceMember {
+  id          String    @id @default(uuid())
+  workspaceId String    @map("workspace_id")
+  userId      String    @map("user_id")
+  role        String    @default("DEVELOPER") // OWNER, ADMIN, DEVELOPER, CLIENT
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId], name: "workspaceId_userId")
+  @@index([workspaceId])
+  @@index([userId])
+  @@map("workspace_members")
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  workspaceId String    @map("workspace_id")
+  name        String
+  keyPrefix   String    @map("key_prefix")
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  epics       Epic[]
+  tasks       Task[]
+
+  @@unique([workspaceId, keyPrefix])
+  @@index([workspaceId])
+  @@map("projects")
+}
+
+model Epic {
+  id          String    @id @default(uuid())
+  workspaceId String    @map("workspace_id")
+  projectId   String    @map("project_id")
+  title       String
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+
+  @@index([workspaceId])
+  @@index([projectId])
+  @@map("epics")
+}
+
+model Task {
+  id             String            @id @default(uuid())
+  workspaceId    String            @map("workspace_id")
+  projectId      String            @map("project_id")
+  epicId         String?           @map("epic_id")
+  parentId       String?           @map("parent_id")
+  key            String            @unique
+  title          String
+  description    String
+  status         String            @default("TODO") // BACKLOG, TODO, IN_PROGRESS, IN_REVIEW, DONE
+  priority       String            @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  storyPoints    Int               @default(1) @map("story_points")
+  version        Int               @default(1)
+  pullRequestUrl String?           @map("pull_request_url")
+  branchName     String?           @map("branch_name")
+  branchUrl      String?           @map("branch_url")
+  acceptanceCriteria String?      @map("acceptance_criteria") // Stringified JSON list
+  assigneeId     String?           @map("assignee_id")
+  reporterId     String?           @map("reporter_id")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+  workspace      Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project        Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  epic           Epic?             @relation(fields: [epicId], references: [id], onDelete: SetNull)
+  parent         Task?             @relation("TaskHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  subtasks       Task[]            @relation("TaskHierarchy")
+  assignee       User?             @relation("Assignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  reporter       User?             @relation("Reporter", fields: [reporterId], references: [id], onDelete: SetNull)
+  comments       Comment[]
+  dependencies   TaskDependency[]  @relation("BlockedBy")
+  blockedTasks   TaskDependency[]  @relation("Blocking")
+
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([epicId])
+  @@index([assigneeId])
+  @@map("tasks")
+}
+
+model TaskDependency {
+  blockingTaskId String   @map("blocking_task_id")
+  blockedTaskId  String   @map("blocked_task_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  blockingTask   Task     @relation("Blocking", fields: [blockingTaskId], references: [id], onDelete: Cascade)
+  blockedTask    Task     @relation("BlockedBy", fields: [blockedTaskId], references: [id], onDelete: Cascade)
+
+  @@id([blockingTaskId, blockedTaskId])
+  @@map("task_dependencies")
+}
+
+model Comment {
+  id          String    @id @default(uuid())
+  workspaceId String    @map("workspace_id")
+  taskId      String    @map("task_id")
+  authorId    String    @map("author_id")
+  body        String
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([authorId])
+  @@map("comments")
+}
+
+model AuditLog {
+  id          String    @id @default(uuid())
+  workspaceId String    @map("workspace_id")
+  actorId     String?   @map("actor_id")
+  actorType   String    @map("actor_type") // USER, SYSTEM_AI, SYSTEM_WEBHOOK
+  actionType  String    @map("action_type") // TASK_CREATED, TASK_MOVED, GITHUB_PR_MERGED
+  entityName  String    @map("entity_name")
+  entityId    String    @map("entity_id")
+  oldValues   String?   @map("old_values") // JSON string
+  newValues   String?   @map("new_values") // JSON string
+  createdAt   DateTime  @default(now()) @map("created_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actor       User?     @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([entityId])
+  @@map("audit_logs")
+}
+
+model GitIntegration {
+  id                      String    @id @default(uuid())
+  workspaceId             String    @unique @map("workspace_id")
+  githubAppInstallationId String?   @map("github_app_installation_id")
+  encryptedAccessToken    String    @map("encrypted_access_token")
+  webhookSecret           String    @map("webhook_secret")
+  repositoryName          String    @map("repository_name")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+  workspace               Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("git_integrations")
+}
