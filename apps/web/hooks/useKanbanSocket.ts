@@ -7,6 +7,8 @@ export const MOCK_PROJECT_ID = '22222222-2222-2222-2222-222222222222';
 const MOCK_JWT_TOKEN = 
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLWlkLXBsYWNlaG9sZGVyIiwid29ya3NwYWNlcyI6WyIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiXSwiaWF0IjoxNzgyNzc2MDQ0fQ.wFA1tRThYMynjVM3UzRg8LejB-KwuJba5egxxoZrxeA';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+
 export function useKanbanSocket() {
   const [boardTasks, setBoardTasks] = useState<Record<TaskStatus, Task[]>>({
     TODO: [],
@@ -30,7 +32,7 @@ export function useKanbanSocket() {
     const fetchTasks = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`http://localhost:5000/api/v1/ai/tasks`, {
+        const res = await fetch(`${BACKEND_URL}/api/v1/ai/tasks`, {
           headers: {
             'x-workspace-id': MOCK_WORKSPACE_ID
           }
@@ -67,7 +69,7 @@ export function useKanbanSocket() {
 
   // Set up WebSocket connection
   useEffect(() => {
-    const socket = io('http://localhost:5000/realtime', {
+    const socket = io(`${BACKEND_URL}/realtime`, {
       auth: {
         token: `Bearer ${MOCK_JWT_TOKEN}`
       },
@@ -198,7 +200,7 @@ export function useKanbanSocket() {
     addLog(`Initiating Multi-Agent Pipeline for project: ${MOCK_PROJECT_ID}`);
 
     try {
-      const res = await fetch('http://localhost:5000/api/v1/ai/generate-tasks', {
+      const res = await fetch(`${BACKEND_URL}/api/v1/ai/generate-tasks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
