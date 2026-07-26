@@ -1,0 +1,14 @@
+node_modules
+dist
+apps/web
+.git
+.vercel
+.next
+*.db
+.env
+Dockerfile
+.dockerignore
+render.yaml
+README.md
+ARCHITECTURE.md
+docs
