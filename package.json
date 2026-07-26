@@ -1,0 +1,37 @@
+{
+  "name": "sequence-jira-ai-worker",
+  "version": "1.0.0",
+  "description": "SequenceJira AI Worker and WebSocket platform",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/services/ai-worker/main.js",
+    "start:dev": "ts-node services/ai-worker/main.ts",
+    "dev": "npm run dev --prefix apps/web"
+  },
+  "dependencies": {
+    "@golevelup/nestjs-rabbitmq": "^9.0.2",
+    "@nestjs/common": "^11.1.27",
+    "@nestjs/core": "^11.1.27",
+    "@nestjs/platform-express": "^11.1.27",
+    "@nestjs/platform-socket.io": "^11.1.27",
+    "@nestjs/websockets": "^11.1.27",
+    "@octokit/rest": "^22.0.1",
+    "@prisma/client": "^5.22.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "dotenv": "^17.4.2",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^1.22.0",
+    "openai": "^6.45.0",
+    "prisma": "^5.22.0",
+    "slugify": "^1.6.9",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
