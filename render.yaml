@@ -1,5 +1,44 @@
 services:
-- {type: web, name: sequence-jira-backend, env: node, plan: free, buildCommand: "npm install && npx prisma generate && npm run build", startCommand: "npx prisma db push && npm run start", envVars: [{key: NODE_ENV, value: production}, {key: DATABASE_URL, fromDatabase: {name: sequence-jira-db, property: connectionString}}, {key: REDIS_URL, fromService: {name: sequence-jira-redis, type: redis, property: connectionString}}, {key: RABBITMQ_ENABLED, value: "false"}, {key: OPENAI_API_KEY, sync: false}, {key: OPENAI_BASE_URL, value: "https://models.inference.ai.azure.com"}, {key: OPENAI_MODEL, value: "gpt-4o-mini"}, {key: GITHUB_TOKEN, sync: false}, {key: GITHUB_OWNER, sync: false}, {key: GITHUB_REPO, sync: false}, {key: GITHUB_WEBHOOK_SECRET, sync: false}]}
-- {type: redis, name: sequence-jira-redis, plan: free, ipAllowList: []}
+  - type: web
+    name: sequence-jira-backend
+    env: node
+    plan: free
+    buildCommand: "npm install && npx prisma generate && npm run build"
+    startCommand: "npx prisma db push && npm run start"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sequence-jira-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: sequence-jira-redis
+          type: redis
+          property: connectionString
+      - key: RABBITMQ_ENABLED
+        value: "false"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_BASE_URL
+        value: "https://models.inference.ai.azure.com"
+      - key: OPENAI_MODEL
+        value: "gpt-4o-mini"
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_OWNER
+        sync: false
+      - key: GITHUB_REPO
+        sync: false
+      - key: GITHUB_WEBHOOK_SECRET
+        sync: false
+
+  - type: redis
+    name: sequence-jira-redis
+    plan: free
+    ipAllowList: []
+
 databases:
-- {name: sequence-jira-db, plan: free}
+  - name: sequence-jira-db
+    plan: free
